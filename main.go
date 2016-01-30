@@ -1,6 +1,5 @@
 package main
 
-// TODO this code opens and closes the i2c context on each calls.
 /*
 #cgo LDFLAGS: -lmraa
 #include <stdio.h>
@@ -15,11 +14,11 @@ i2c_get(mraa_i2c_context i2c, uint8_t device_address, uint8_t register_address, 
     mraa_result_t status = MRAA_SUCCESS;
     status = mraa_i2c_address(i2c, device_address);
     if (status != MRAA_SUCCESS) {
-			return status
+			return status;
     }
     status = mraa_i2c_write_byte(i2c, register_address);
     if (status != MRAA_SUCCESS) {
-			return status
+			return status;
     }
     status = mraa_i2c_read(i2c, data, length) == length ? MRAA_SUCCESS : MRAA_ERROR_UNSPECIFIED;
     return status;
@@ -56,9 +55,9 @@ func main() {
 	eventDef.PushField("quality", "number", "")
 	client.AddLocalDefinition(eventDef)
 
-	i2c := C.mraa_i2c_init(bus);
+	i2c := C.mraa_i2c_init(1);
 	if (i2c == nil) {
-		return MRAA_ERROR_NO_RESOURCES;
+		log.Fatal("I2c bus error")
 	}
 
 	var data = make([]uint8, 26)
@@ -67,12 +66,6 @@ func main() {
 			time.Sleep(1 * time.Second)
 			return
 		}
-		fmt.Println(len(data))
-
-		for i := 0; i < len(data); i+=1 {
-			fmt.Printf("%02x", data[i])
-		}
-		fmt.Println()
 
 		buffer := bytes.NewBuffer(data)
 		var frame_count uint16
