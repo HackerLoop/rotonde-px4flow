@@ -1,5 +1,6 @@
 package main
 
+// TODO this code opens and closes the i2c context on each calls.
 /*
 #cgo LDFLAGS: -lmraa
 #include <stdio.h>
@@ -9,27 +10,18 @@ package main
 #include <mraa/i2c.h>
 
 mraa_result_t
-i2c_get(int bus, uint8_t device_address, uint8_t register_address, uint8_t* data, int length)
+i2c_get(mraa_i2c_context i2c, uint8_t device_address, uint8_t register_address, uint8_t* data, int length)
 {
     mraa_result_t status = MRAA_SUCCESS;
-    mraa_i2c_context i2c = mraa_i2c_init(bus);
-    if (i2c == NULL) {
-        return MRAA_ERROR_NO_RESOURCES;
-    }
     status = mraa_i2c_address(i2c, device_address);
     if (status != MRAA_SUCCESS) {
-        goto i2c_get_exit;
+			return status
     }
     status = mraa_i2c_write_byte(i2c, register_address);
     if (status != MRAA_SUCCESS) {
-        goto i2c_get_exit;
+			return status
     }
     status = mraa_i2c_read(i2c, data, length) == length ? MRAA_SUCCESS : MRAA_ERROR_UNSPECIFIED;
-    if (status != MRAA_SUCCESS) {
-        goto i2c_get_exit;
-    }
-i2c_get_exit:
-    mraa_i2c_stop(i2c);
     return status;
 }
 */
@@ -64,9 +56,14 @@ func main() {
 	eventDef.PushField("quality", "number", "")
 	client.AddLocalDefinition(eventDef)
 
+	i2c := C.mraa_i2c_init(bus);
+	if (i2c == nil) {
+		return MRAA_ERROR_NO_RESOURCES;
+	}
+
 	var data = make([]uint8, 26)
 	for {
-		if C.i2c_get(1, 0x42, 0x16, (*C.uint8_t)(unsafe.Pointer(&data[0])), C.int(len(data))) != C.MRAA_SUCCESS {
+		if C.i2c_get(i2c, 0x42, 0x16, (*C.uint8_t)(unsafe.Pointer(&data[0])), C.int(len(data))) != C.MRAA_SUCCESS {
 			time.Sleep(1 * time.Second)
 			return
 		}
